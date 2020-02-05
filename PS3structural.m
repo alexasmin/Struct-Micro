@@ -201,7 +201,7 @@ for nx=1:6
     
     P1=zeros(90,1);
     for j=1:90
-        P1(j)=1-exp(theta(1)-theta(2)*gridx(j)+beta*(V0(j)-V1(j)))./(1+(exp(theta(1)-theta(2)*gridx(j)+beta*(V0(j)-V1(j)))));
+        P1(j)=1./(1+exp(theta(1)-theta(2)*gridx(j)+beta*(V0(j)-V1(j))));
         if P1(j)==0;
             P1(j)=0.0000000000000000001;
         end
