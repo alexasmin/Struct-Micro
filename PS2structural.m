@@ -157,11 +157,14 @@ end
 
 %create one large vactor over all observations for the difference between
 %the value functions, the miles and the decisions
+VV=log(exp(V0)+exp(V1));
 w=1;
 for i = 1:T
     for j = 1:N
        if no_obs(i,j) == 0
-           vdiff(w)=beta*(V0(disEExt(i,j))-V1(disEExt(i,j)));
+           V=VV.*F0(disEExt(i,j),:)';
+           vdiff(w)=beta*(sum(V)-VV(1));
+           %vdiff(w)=beta*(V0(disEExt(i,j))-V1(disEExt(i,j)));
            XT(w)=disEExt(i,j);
            y(w)=drep(i,j);
            w=w+1;
@@ -187,10 +190,13 @@ end
 
 
 end
-
+%%
 p1nfx=zeros(90,1);
+vv=log(exp(V0)+exp(V1));
 for j=1:90
-    p1nfx(j)=1-exp(theta(1)-theta(2)*gridx(j)+beta*(V0(j)-V1(j)))./(1+(exp(theta(1)-theta(2)*gridx(j)+beta*(V0(j)-V1(j)))));
+    v=vv.*F0(j,:)';
+    p1nfx(j)=1./(1+exp(theta(1)-theta(2)*gridx(j)+beta*(sum(v)-vv(1))));
 end
 
 save p1nfx.txt p1nfx -ascii -double 
+save F0.txt F0 -ascii -double

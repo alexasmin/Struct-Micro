@@ -7,7 +7,7 @@ for i = 1:length(vars)
     assignin('base', vars{i}, Data.(vars{i}));
 end
 %load probabilities estimated using NFXP
-p1nfx=load('p1nfx.txt');%('NFXP1.txt')';
+p1nfx=load('p1nfx.txt');%('NFXP1.txt')';p1NFXP
 % first part identical to PS 2
 % (2) Compute the transition probabilities
 N = size(xt,2);
@@ -146,8 +146,8 @@ loglik=@(theta) -sum((1-y).*log((exp(theta(1)-theta(2)*XT+pdiff))./(1+(exp(theta
 logliknfx=@(thetanfx) -sum((1-y).*log((exp(thetanfx(1)-thetanfx(2)*XT+pdiffnfx))./(1+(exp(thetanfx(1)-thetanfx(2)*XT+pdiffnfx))))+y.*log(1-(exp(thetanfx(1)-thetanfx(2)*XT+pdiffnfx))./(1+(exp(thetanfx(1)-thetanfx(2)*XT+pdiffnfx)))));
 
 %theta(1) is R 
-theta0=[0,0];
-thetanfx0=[0,0];
+theta0=[7,1];
+thetanfx0=[3,1];
 
 theta=fminunc(loglik,theta0);
 thetanfx=fminunc(logliknfx,thetanfx0);
@@ -156,14 +156,20 @@ thetanfx=fminunc(logliknfx,thetanfx0);
 %% Nested Pseude likelihood
 
 %use thatas obtained from first part as initial guess 
+ome=0.3;
 nn=90;
 maxiter=1000;
 tol=0.001;
 gridx=gridx./5000;
-theta=thetanfx;   %turn of if you want to use the unstable thetas calculated with the frequencies
+%theta=thetanfx; %turn of if you want to use the unstable thetas calculated with the frequencies
+R=theta(1);
+M=theta(2);
 for nx=1:6
-    R=theta(1);
-    M=theta(2);
+    if nx>1
+        R=ome*R+(1-ome)*theta(1);
+        M=ome*M+(1-ome)*theta(2);
+    end
+    
     
     V0=zeros(nn,1);
     V1=zeros(nn,1);
@@ -195,18 +201,13 @@ for nx=1:6
         v1=V1;
         
     end
-    
-    
-    
-    
     P1=zeros(90,1);
+    vv=log(exp(V0)+exp(V1));
     for j=1:90
-        P1(j)=1./(1+exp(theta(1)-theta(2)*gridx(j)+beta*(V0(j)-V1(j))));
-        if P1(j)==0;
-            P1(j)=0.0000000000000000001;
-        end
+        v=vv.*F0(j,:)';
+        P1(j)=1./(1+exp(theta(1)-theta(2)*gridx(j)+beta*(sum(v)-vv(1))));
     end
-    
+      
     pdiff=zeros(NN,1);
     pdiffnfx=zeros(NN,1);
     for xc = 1:NN
